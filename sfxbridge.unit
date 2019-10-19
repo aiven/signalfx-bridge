@@ -1,0 +1,14 @@
+[Unit]
+Description=Telegraf to SignalFX bridge
+
+[Service]
+User=root
+Group=root
+Type=notify
+Restart=always
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/bin/sfxbridge --config /etc/sfxbridge/config.json
+WorkingDirectory=/var/lib/sfxbridge
+
+[Install]
+WantedBy=multi-user.target
