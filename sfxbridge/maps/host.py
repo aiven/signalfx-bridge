@@ -265,7 +265,8 @@ class _CpuUtilization:
             "tags": metric.get("tags"),
             "fields": {
                 "utilization": round(100.0 - metric["fields"].get("usage_idle", 0.0), 2),
-            }
+            },
+            "timestamp": metric.get("timestamp")
         }
 
         self.metrics.append(result)
@@ -294,6 +295,7 @@ class _NetworkTotal:
     _metrics = None
     _interfaces = None
     _tags = None
+    _timestamp = None
 
     def __init__(self):
         self.clear()
@@ -317,7 +319,8 @@ class _NetworkTotal:
             "tags": self._tags,
             "fields": {
                 "total": total_bytes,
-            }
+            },
+            "timestamp": self._timestamp,
         }
         return [result]
 
@@ -332,6 +335,9 @@ class _NetworkTotal:
         interface = metric.get("tags", {}).get("interface", "all")
         if interface == "all":
             return
+
+        if self._timestamp is None:
+            self._timestamp = metric.get("timestamp")
 
         in_bytes = metric.get("fields", {}).get("bytes_recv", 0)
         out_bytes = metric.get("fields", {}).get("bytes_sent", 0)

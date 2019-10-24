@@ -8,9 +8,11 @@ class Mapper:
     """
     Handles mapping of telegraf values to signalfx datapoints by
     mapping telegraf metrics to signalfx metrics based on simple
-    conversion table and "constructors" operationg over the
-    received all received telegraf metrics
+    conversion table and "constructors" operating over all received
+    telegraf metrics
     """
+
+    datapoints = None
 
     @classmethod
     def supported_datapoints(cls: "Mapper", service: Optional[str] = None) -> List[str]:
@@ -46,6 +48,7 @@ class Mapper:
     def _simple_mapping(self, metric: dict) -> None:
         name = metric.get("name")
         fields = metric.get("fields", {})
+        timestamp = metric.get("timestamp")
 
         conversion = self._mappings.get(name)
         if not conversion:
@@ -66,6 +69,7 @@ class Mapper:
                 name=dp_name,
                 value=value,
                 dimensions=dp_dimensions,
+                timestamp=timestamp,
             )
 
     def _get_dimensions(self, dimensions: List[str], metric: dict) -> dict:
@@ -96,12 +100,16 @@ class Mapper:
         name: str,
         value: Any,
         dimensions: dict,
+        timestamp: Optional[int] = None,
     ) -> None:
         dp = {
             "metric": name,
             "value": value,
             "dimensions": dimensions,
         }
+        if timestamp:
+            dp["timestamp"] = timestamp * 1000  # telegraf timestamps are in seconds
+
         if dp_type not in self.datapoints:
             self.datapoints[dp_type] = []
         self.datapoints[dp_type].append(dp)
