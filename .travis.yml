@@ -1,0 +1,18 @@
+language: python
+dist: xenial
+
+before_install:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y libsystemd-dev"
+
+python:
+  - "3.7"
+
+install:
+  - "pip install pylint pytest mock flake8 coverage coveralls requests aiohttp"
+  - "pip install https://github.com/systemd/python-systemd/zipball/master"
+
+script:
+  - "make flake8"
+  - "make pylint"
+  - "make unittest"

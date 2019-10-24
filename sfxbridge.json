@@ -1,0 +1,8 @@
+{
+    "host": "localhost",
+    "port": "9001",
+    "realm": "us0",
+    "apikey": "thisisjustanexample",
+    "service": "kafka",
+    "whitelist": ["*"]
+}
