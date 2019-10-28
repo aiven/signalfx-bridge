@@ -76,6 +76,7 @@ class SfxClient:
         if self._apikey:
             self._headers["X-SF-TOKEN"] = self._apikey
         self._timeout = self.config.get("timeout", 20.0)
+        self._trace = self.config.get("trace", False)
 
         # Whitelist determines which statistics are actually send, even though
         # the configuration has a list of glob patterns
@@ -133,6 +134,13 @@ class SfxClient:
         self._mapper.clear()
         self._mapper.process(metrics)
         self.send(self._mapper.datapoints)
+
+        if self._trace:
+            with open("trace.json", "a") as fp:
+                print("\nTELEGRAF DATA\n", file=fp)
+                json.dump(metrics, fp=fp, indent=2)
+                print("\nDATAPOINTS\n", file=fp)
+                json.dump(self._mapper.datapoints, fp=fp, indent=2)
 
     def send(self, points: dict):
         if not points:

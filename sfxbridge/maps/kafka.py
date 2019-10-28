@@ -127,20 +127,22 @@ class KafkaBytesInOut:
 
     _tags = None
     _bytes = None
+    _timestamp = None
 
     def __init__(self):
         self.clear()
 
     def clear(self):
         self._tags = None
-        self._bytes = {"in": 0, "out": 0}
+        self._bytes = {}
+        self._timestamp = None
 
     @property
     def metrics(self):
         fields = {}
-        if self._bytes["in"]:
+        if self._bytes.get("in"):
             fields["in"] = self._bytes["in"]
-        if self._bytes["out"]:
+        if self._bytes.get("out"):
             fields["out"] = self._bytes["out"]
         if not fields:
             return []
@@ -149,22 +151,35 @@ class KafkaBytesInOut:
             "name": "counter.kafka_bytes",
             "tags": self._tags,
             "fields": fields,
+            "timestamp": self._timestamp,
         }]
 
     def process(self, metric):
         """
-        Constucts total number of bytes in/out
+        Filter out the topic specific values and only use the total
         """
         name = metric.get("name")
         if name not in {"kafka.server:BrokerTopicMetrics.BytesInPerSec", "kafka.server:BrokerTopicMetrics.BytesOutPerSec"}:
             return
+
+        tags = metric.get("tags")
+        if not tags:
+            return
+
+        if tags.get("topic"):  # metric without topic is the total
+            return
+
         if self._tags is None:
-            self._tags = metric.get("tags")
+            self._tags = tags
+
+        if self._timestamp is None:
+            self._timestamp = metric.get("timestamp")
+
         count = metric["fields"].get("Count", 0)
         if name == "kafka.server:BrokerTopicMetrics.BytesInPerSec":
-            self._bytes["in"] += count
+            self._bytes["in"] = count
         else:
-            self._bytes["out"] += count
+            self._bytes["out"] = count
 
 
 @Constructors.register(service="kafka")
@@ -204,7 +219,12 @@ class KafkaMessagesIn:
         if tags.get("topic"):
             return
 
-        self.metrics.append({"name": "_total_kafka_messages_in", "tags": tags, "fields": metric["fields"]})
+        self.metrics.append({
+            "name": "_total_kafka_messages_in",
+            "tags": tags,
+            "fields": metric.get("fields"),
+            "timestamp": metric.get("timestamp")
+        })
 
 
 @Constructors.register(service="kafka")
@@ -242,13 +262,19 @@ class RequestMetrics:
             }
         }
 
-    metrics = None
+    _metric = None
+
+    @property
+    def metrics(self):
+        if self._metric is None:
+            return []
+        return [self._metric]
 
     def __init__(self):
         self.clear()
 
     def clear(self):
-        self.metrics = []
+        self._metric = None
 
     def process(self, metric):
         name = metric.get("name")
@@ -269,10 +295,11 @@ class RequestMetrics:
         if field is None:
             return
 
-        if not self.metrics:
-            self.metrics.append({
+        if self._metric is None:
+            self._metric = {
                 "name": "_constructed_kafka_fetch",
                 "tags": tags,
                 "fields": {},
-            })
-        self.metrics[0]["fields"][field] = metric["fields"].get("Count")
+                "timestamp": metric.get("timestamp"),
+            }
+        self._metric["fields"][field] = metric["fields"].get("Count")

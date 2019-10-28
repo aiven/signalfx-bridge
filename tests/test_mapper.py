@@ -38,6 +38,7 @@ def test_simple_mapping():
             },
             "metric": "load.midterm",
             "value": 0.47,
+            "timestamp": 1570444470000,
         }]
     }
 
@@ -80,6 +81,7 @@ def test_cpu_utilization():
             },
             "metric": "cpu.utilization",
             "value": 9.07,
+            "timestamp": 1570444500000,
         }]
     }
 
@@ -126,7 +128,7 @@ def test_network_total():
                 "service": "pg",
                 "service_type": "pg"
             },
-            "timestamp": 1570444500
+            "timestamp": 1570444500,
         },
     ])
     assert mapper.datapoints == {
@@ -137,5 +139,6 @@ def test_network_total():
             },
             "metric": "network.total",
             "value": 156796692 + 24029619,
+            "timestamp": 1570444500000,
         }]
     }
