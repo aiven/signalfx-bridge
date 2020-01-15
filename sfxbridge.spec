@@ -6,7 +6,7 @@ Summary:        Bridge metrics from telegraf to SignalFX
 License:        ASL 2.0
 Source0:        sfxbridge-rpm-src.tar.gz
 Requires:       systemd-python3, python3-requests, python3-aiohttp
-BuildRequires:  %{requires}
+BuildRequires:  systemd-python3, python3-requests, python3-aiohttp
 BuildRequires:  python3-devel, python3-pytest, python3-pylint
 BuildArch:      noarch
 
