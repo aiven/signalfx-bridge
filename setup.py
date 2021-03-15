@@ -9,7 +9,7 @@ setup(
     author="Aiven Oy",
     author_email="support@aiven.io",
     zip_safe=False,
-    packages=find_packages(exclude=["test"]),
+    packages=find_packages(exclude=["tests"]),
     extras_require={},
     dependency_links=[],
     package_data={},
